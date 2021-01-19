@@ -1,0 +1,106 @@
+{
+  "pokemonlist": [
+    {
+      "id": 0,
+      "owned": 100
+    },
+    {
+      "id": 1,
+      "owned": 1
+    },
+    {
+      "id": 2,
+      "owned": 0
+    },
+    {
+      "id": 3,
+      "owned": 1
+    },
+    {
+      "id": 4,
+      "owned": 0
+    },
+    {
+      "id": 5,
+      "owned": 0
+    },
+    {
+      "id": 6,
+      "owned": 0
+    },
+    {
+      "id": 7,
+      "owned": 0
+    },
+    {
+      "id": 8,
+      "owned": 0
+    },
+    {
+      "id": 9,
+      "owned": 0
+    },
+    {
+      "id": 10,
+      "owned": 0
+    },
+    {
+      "id": 11,
+      "owned": 0
+    },
+    {
+      "id": 12,
+      "owned": 0
+    },
+    {
+      "id": 13,
+      "owned": 0
+    },
+    {
+      "id": 14,
+      "owned": 0
+    },
+    {
+      "id": 15,
+      "owned": 0
+    },
+    {
+      "id": 16,
+      "owned": 0
+    },
+    {
+      "id": 17,
+      "owned": 0
+    },
+    {
+      "id": 18,
+      "owned": 0
+    },
+    {
+      "id": 19,
+      "owned": 0
+    },
+    {
+      "id": 20,
+      "owned": 0
+    }
+  ],
+  "mypoke": [
+    {
+      "status": "Active",
+      "name": "bombom",
+      "wildname": "bulbasaur",
+      "pokemonIndex": 1,
+      "imageUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
+      "id": 1
+    },
+    {
+      "status": "Active",
+      "name": "bimbim",
+      "wildname": "venusaur",
+      "pokemonIndex": 3,
+      "imageUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png",
+      "id": 2
+    }
+  ]
+}

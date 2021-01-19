@@ -1,5 +1,14 @@
+/* eslint-disable array-callback-return */
 import React, { Component } from 'react'
 import axios from "axios";
+import styled from '@emotion/styled';
+import pokeball from "../other/pokemonball.gif";
+import {Button,Modal, Form} from "react-bootstrap";
+import { addMyPokemon } from "../../redux/actions";
+import { connect } from 'react-redux';
+import swal from 'sweetalert'
+import { api_url } from "../../helpers/api_url"
+
 
 const TYPE_COLORS = {
   bug: 'B1C12E',
@@ -22,7 +31,40 @@ const TYPE_COLORS = {
   water: '3295F6'
 };
 
-export default class Pokemon extends Component {
+const ButtonCatch = styled.button`
+  color: black;
+  width: 120px;
+  height: 55px;
+  display: flex;
+  flex-direction: row;
+  border: none;
+  outline: none;
+  font-weight: bold;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+`
+const ButtonMyPokemon = styled.button`
+  width: 120px;
+  height: 50px;
+  background: yellow;
+  text-decoration: none;
+  color: black;
+  border-radius: 5px 5px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &:focus,
+  &:hover,
+  &:visited,
+  &:link,
+  &:active {
+    text-decoration: none;
+  }
+`
+
+ class Pokemon extends Component {
   state = {
     name: "",
     pokemonIndex: "",
@@ -48,10 +90,16 @@ export default class Pokemon extends Component {
     genderRatioFemale: '',
     evs: '',
     hatchSteps: '',
-    themeColor: '#EF5350'
+    themeColor: '#EF5350',
+    nickname: '',
+    show: false,
+    status: 'Active',
+    probability1: 0,
+    owned: "",
   }
   async componentDidMount() {
     const {pokemonIndex} = this.props.match.params;
+
 
     const pokemonUrl = `https://pokeapi.co/api/v2/pokemon/${pokemonIndex}/`;
     const pokemonSpeciesUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokemonIndex}/`;
@@ -59,7 +107,6 @@ export default class Pokemon extends Component {
     const pokemonRes = await axios.get(pokemonUrl);
     const name = pokemonRes.data.name;
     const imageUrl = pokemonRes.data.sprites.front_default;
-
     let { hp, attack, defense, speed, specialAttack, specialDefense } = '';
 
     pokemonRes.data.stats.map(stat => {
@@ -94,8 +141,6 @@ export default class Pokemon extends Component {
       Math.round((pokemonRes.data.weight * 0.220462 + 0.00001) * 100) / 100;
 
     const types = pokemonRes.data.types.map(type => type.type.name);
-
-    // const themeColor = `${TYPE_COLORS[types[types.length - 1]]}`;
 
     const abilities = pokemonRes.data.abilities
       .map(ability => {
@@ -158,6 +203,8 @@ export default class Pokemon extends Component {
           hatchSteps
         });
       })
+
+
       this.setState({
          imageUrl,
          pokemonIndex,
@@ -171,13 +218,114 @@ export default class Pokemon extends Component {
            specialAttack,
            specialDefense
          },
-         // themeColor,
          height,
          weight,
          abilities,
-         evs
+         evs,
        });
+    this.ownedPokemon()
   }
+  addMyPokemon = () => {
+    var regex = /^[A-Za-z]\w{0,7}$/
+    const {addMyPokemon } = this.props
+    if (this.state.nickname.match(regex)) {
+      let data = {
+        status: this.state.status,
+        name: this.state.nickname,
+        wildname: this.state.name,
+        pokemonIndex: parseInt(this.state.pokemonIndex),
+        imageUrl: this.state.imageUrl
+        
+      }
+      let owned = this.state.owned
+      this.setState({show: !this.state.show})
+      addMyPokemon(data, owned)
+      this.setState({nickname: ""})
+    } else {
+      swal("Error!", "Nickname invalid!! Maximum 8 characters", "error");
+    }
+  }
+  ownedPokemon = () => {
+    const {pokemonIndex} = this.state
+    axios.get(`${api_url}/pokemonlist/${pokemonIndex}`)
+    .then((res) => {
+      this.setState({
+        owned: res.data.owned
+      })
+    })
+  }
+
+  onChangeInput = (e) => {
+    this.setState({
+      ...this.state,
+      [e.target.id]: e.target.value
+    })
+  }
+  catchProbability(){
+    if (this.state.probability1 === 1) {
+      return (
+        <Modal show={this.state.show} onHide={() =>this.handleModal()}>
+          <Modal.Header closeButton>Congrats!!</Modal.Header>
+          <Modal.Body 
+            style={{
+              fontSize: "30px",
+              color:"orange",
+              justifyContent: 'center',
+              alignItems : 'center',
+              // left: '2
+          }}>Gotcha! Pokemon was caught</Modal.Body>
+          <Form 
+            style={{
+              width:"300px",
+              display:"grid",                
+              alignItems:"center",
+              justifyContent:"center"
+            }}>
+            <Form.Label>Pokemon Name</Form.Label>
+            <Form.Control 
+              id="nickname"
+              type="text" 
+              placeholder="Enter Nickname"
+              value={this.state.nickname}
+              onChange={this.onChangeInput}
+              />
+            <Form.Text className="text-muted">Please insert maximum 8 characters</Form.Text>
+          </Form>
+          <Modal.Footer>
+            <ButtonMyPokemon onClick={this.addMyPokemon} >Catch Pokemon</ButtonMyPokemon>
+          </Modal.Footer>
+        </Modal>
+      )
+    } else if (this.state.probability1 === 2) {
+      return (
+        <Modal show={this.state.show} onHide={() =>this.handleModal()}>
+          <Modal.Header closeButton>Don't Give Up!!</Modal.Header>
+          <Modal.Body 
+            style={{
+              fontSize: "30px",
+              color:"orange",
+              justifyContent: 'center',
+              alignItems : 'center',
+              // left: '2
+          }}>Oh no! Pokemon run away</Modal.Body>
+          <Modal.Footer>
+            <Button onClick={() => {this.handleModal()}}>Close</Button>
+          </Modal.Footer>
+        </Modal>
+      )
+    }
+  }
+  
+  handleModal(){
+    const probability1 = Math.floor(Math.random() * 2) + 1;
+
+    this.setState({
+      show: !this.state.show,
+      probability1 
+    
+    })
+  }
+
     render() {
         return (
             <div className="col">
@@ -185,10 +333,7 @@ export default class Pokemon extends Component {
                 <div className="card-header">
                   <div className="row">
                     <div className="col-5">
-                      <h5>{this.state.pokemonIndex}</h5>
-                    </div>
-                    <div className="col-7">
-                    <div className="float-right">
+                      <h5>
                       {this.state.types.map(type => (
                         <span key={type}
                         className="badge badge-primary badge-pill mr-1"
@@ -204,8 +349,18 @@ export default class Pokemon extends Component {
                         .join(' ')
                         }</span>
                       ))}
+                      
+                      </h5>
                     </div>
-
+                    <div className="col-7">
+                    <div className="float-right">
+                      <ButtonCatch onClick={() =>{this.handleModal()}}>
+                        <p className="mx-auto" style={{fontSize:"1rem" , marginTop:"10px"}}>catch me! </p>
+                        <img key src={pokeball} style={{width: "2.5em", height: "2.5em"}} className="card-img-top rounded mx-auto d-block mt-2" alt=""></img>
+                      </ButtonCatch>
+                      <div>{this.catchProbability()}
+                      </div>
+                    </div>
                     </div>
                   </div>
                 </div>
@@ -214,7 +369,7 @@ export default class Pokemon extends Component {
                     <div className="col-md-3">
                       <img 
                       src={this.state.imageUrl}
-                      className="card-img-top rounded mx-auto mt-2"
+                      className="card-img-top rounded mx-auto mt-2" alt=""
                       />
                     </div>
                     <div className="col-md-9">
@@ -386,7 +541,7 @@ export default class Pokemon extends Component {
                               className="progress-bar"
                               style={{
                                 width: `${this.state.genderRatioFemale}%`,
-                                backgroundColor: '#c2185b'
+                                backgroundColor: '#f6c90e'
                               }}
                               aria-valuenow="15"
                               aria-valuemin="0"
@@ -399,7 +554,7 @@ export default class Pokemon extends Component {
                               role="progressbar"
                               style={{
                                 width: `${this.state.genderRatioMale}%`,
-                                backgroundColor: '#1976d2'
+                                backgroundColor: '#3e4e88'
                               }}
                               aria-valuenow="30"
                               aria-valuemin="0"
@@ -446,3 +601,12 @@ export default class Pokemon extends Component {
         )
     }
 }
+
+const mapStatetoProps = (state) => {
+  return {
+    myPokemonList: state.myPokemonList.mypoke,
+    owned : state.pokeList.pokeList
+  }
+}
+
+export default connect(mapStatetoProps, {addMyPokemon}) (Pokemon)

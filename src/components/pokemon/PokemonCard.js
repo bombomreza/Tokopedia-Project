@@ -2,28 +2,10 @@ import React, { Component } from 'react'
 import styled from "@emotion/styled";
 import spinner from "../other/spinner.gif";
 import { Link } from "react-router-dom";
-// import axios from "axios";
-
-// const TYPE_COLORS = {
-//   bug: 'B1C12E',
-//   dark: '4F3A2D',
-//   dragon: '755EDF',
-//   electric: 'FCBC17',
-//   fairy: 'F4B1F4',
-//   fighting: '823551D',
-//   fire: 'E73B0C',
-//   flying: 'A3B3F7',
-//   ghost: '6060B2',
-//   grass: '74C236',
-//   ground: 'D3B357',
-//   ice: 'A3E7FD',
-//   normal: 'C8C4BC',
-//   poison: '934594',
-//   psychic: 'ED4882',
-//   rock: 'B9A156',
-//   steel: 'B5B5C3',
-//   water: '3295F6'
-// };
+import {connect} from 'react-redux'
+import {fetchOwnedPoke} from '../../redux/actions'
+import Axios from 'axios'
+import { api_url } from "../../helpers/api_url"
 
 const PokemonImg = styled.img`
   width: 5em;
@@ -56,63 +38,48 @@ const LinkItem = styled(Link)`
   }
 `
 
-
-export default class PokemonCard extends Component {
+class PokemonCard extends Component {
   state = {
     name: '',
     imageUrl: '',
     pokemonIndex:'',
     imageLoading: true,
     toManyRequest: false,
-    // types:[]
+    Owned : "",
   }
   componentDidMount () {
     const {name, url} = this.props;
     const pokemonIndex = url.split('/')[url.split('/').length-2];
     const imageUrl = `https://github.com/PokeAPI/sprites/blob/master/sprites/pokemon/${pokemonIndex}.png?raw=true`;
-    
-    // const pokemonUrl = `https://pokeapi.co/api/v2/pokemon/${pokemonIndex}/`;
-    // const pokemonRes =   axios.get(pokemonUrl);
-
-
-    // const types = pokemonRes.data.types.map(type => type.type.name);
 
     this.setState({
       name,
       imageUrl,
       pokemonIndex,
-      // types
     });
-
-
+    this.ownedPokemon()
   }
+    ownedPokemon = () => {
+      const {pokemonIndex} = this.state
+      Axios.get(`${api_url}/pokemonlist/${pokemonIndex}`)
+        .then((res) => {
+          this.setState({
+            Owned: res.data[this.state.pokemonIndex].owned
+          })
+        })
+        .catch((err) => {console.log(err)})
+    }
+    
     render() {
         return (
             <div className="col-md-3 col-sm-6 mb-5">
             <LinkItem to={`pokemon/${this.state.pokemonIndex}`}>
               <PokeCard className="card">
                 <h5 className= "card-header">
-                  {this.state.pokemonIndex}
-                  {/* {this.state.types.map(type => (
-                        <span key={type}
-                        className="badge badge-primary badge-pill mr-1"
-                        style={{
-                        backgroundColor: `#${TYPE_COLORS[type]}`,
-                        color: 'white'}}
-                        >
-                        
-                        {type
-                        .toLowerCase()
-                        .split(' ')
-                        .map(s => s.charAt(0).toUpperCase() + s.substring(1))
-                        .join(' ')
-                        }</span>
-                      ))} */}
-                
-                
+                  Owned:  {this.state.Owned}
                 </h5>
                 {this.state.imageLoading ? (
-                  <img src={spinner} style={{width: "5em", height: "5em"}} className="card-img-top rounded mx-auto d-block mt-2"></img>
+                  <img src={spinner} style={{width: "5em", height: "5em"}} className="card-img-top rounded mx-auto d-block mt-2" alt=""></img>
                 ) : null}
                 <PokemonImg 
                   className= "card-img-top rounded mx-auto mt-2"
@@ -142,3 +109,12 @@ export default class PokemonCard extends Component {
         )
     }
 }
+
+const mapStatetoProps = (state) => {
+  return {
+    pokemonList : state.pokeList.pokeList
+
+  }
+}
+
+export default connect(mapStatetoProps, {fetchOwnedPoke}) (PokemonCard)
